@@ -2,56 +2,49 @@ name: Build and Deploy
 
 on:
   push:
-    branches: [main]          # rebuild on every commit to main
-  pull_request:
-    branches: ['*']           # optional: preview builds for PRs
+    branches: [main]
 
 permissions:
   contents: read
   pages: write
-  id-token: write             # required by deploy-pages
+  id-token: write
 
 concurrency:
-  group: "pages"
+  group: pages
   cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install JupyterLite and dependencies
+      - name: Install JupyterLite
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt   # must include jupyterlite[all]>=0.4.0
+          python -m pip install jupyterlite[all]>=0.4.0
 
-      - name: Build JupyterLite site (Lab + Retro + Repl)
+      - name: Build JupyterLite site (Lab + Retro)
         run: |
           jupyter lite build \
             --contents content \
             --output-dir dist \
-            --apps lab,retro,repl
+            --apps lab,retro       # ← no “repl”
 
-      - name: Upload build artifact
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
 
   deploy:
     needs: build
-    if: github.ref == 'refs/heads/main'   # only publish from main
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       pages: write
       id-token: write
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - uses: actions/deploy-pages@v4
