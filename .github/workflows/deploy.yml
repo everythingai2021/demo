@@ -34,18 +34,14 @@ jobs:
 
       - name: Build JupyterLite site
         run: |
-          # copy the README into the site (optional)
-          cp README.md content
-          # build both Lab and Retro into ./dist
           jupyter lite build \
             --contents content \
             --output-dir dist \
-            --apps lab,retro
-
-      - name: Upload build artefact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./dist
+            --apps lab,retro,repl
+            - name: Upload build artefact
+              uses: actions/upload-pages-artifact@v3
+              with:
+                path: ./dist
 
   deploy:
     needs: build
